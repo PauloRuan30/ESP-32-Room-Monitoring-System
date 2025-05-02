@@ -1,0 +1,5 @@
+com\example\first_spring_app\FirstSpringAppApplication.class
+com\example\first_spring_app\controller\DeviceController.class
+com\example\first_spring_app\repository\DeviceRepository.class
+com\example\first_spring_app\service\DeviceService.class
+com\example\first_spring_app\model\Device.class
