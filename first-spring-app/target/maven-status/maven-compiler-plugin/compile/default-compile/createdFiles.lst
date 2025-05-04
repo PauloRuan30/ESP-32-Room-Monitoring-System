@@ -1,5 +1,15 @@
 com\example\first_spring_app\FirstSpringAppApplication.class
+com\example\first_spring_app\service\WebSocketService.class
+com\example\first_spring_app\controller\DashboardController.class
 com\example\first_spring_app\controller\DeviceController.class
 com\example\first_spring_app\repository\DeviceRepository.class
-com\example\first_spring_app\service\DeviceService.class
+com\example\first_spring_app\repository\SensorDataRepository.class
+com\example\first_spring_app\config\MqttSensorDataHandler.class
 com\example\first_spring_app\model\Device.class
+application.properties
+com\example\first_spring_app\config\WebSocketConfig.class
+com\example\first_spring_app\config\MqttConfig.class
+com\example\first_spring_app\controller\SensorDataController.class
+com\example\first_spring_app\service\SensorDataService.class
+com\example\first_spring_app\model\SensorData.class
+com\example\first_spring_app\service\DeviceService.class
