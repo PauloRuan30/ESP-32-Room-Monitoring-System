@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface SensorDataRepository extends JpaRepository<SensorData, Long> {
+public interface SensorDataRepository extends JpaRepository<SensorData, UUID> {
 
     List<SensorData> findByDeviceIdOrderByTimestampDesc(String deviceId);
     

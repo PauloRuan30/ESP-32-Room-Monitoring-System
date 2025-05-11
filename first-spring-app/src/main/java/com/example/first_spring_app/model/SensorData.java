@@ -1,7 +1,8 @@
 package com.example.first_spring_app.model;
 
 import java.time.Instant;
-import org.hibernate.annotations.UuidGenerator;
+import java.util.UUID;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,9 +18,8 @@ public class SensorData {
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     @Id
-    @UuidGenerator
-    @Column(columnDefinition = "VARCHAR(36)")
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
     @Column(nullable = false)
     private Device device;

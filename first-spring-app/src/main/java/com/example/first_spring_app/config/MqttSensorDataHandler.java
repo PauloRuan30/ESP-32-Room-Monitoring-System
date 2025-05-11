@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.lang.NonNull;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -48,7 +49,9 @@ public class MqttSensorDataHandler implements MessageHandler {
             log.debug("Mensagem MQTT recebida de [{}]: {}", topic, payload);
             
             // Extrair o ID do dispositivo do tópico (assumindo formato first_spring_app/sensor/deviceId)
-            String deviceId = topic.split("/")[2];
+            String deviceIdString = topic.split("/")[2];
+            // Converter a String para UUID
+            UUID deviceId = UUID.fromString(deviceIdString);
             
             // Parse do JSON
             JsonNode jsonNode = objectMapper.readTree(payload);

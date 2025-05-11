@@ -6,7 +6,6 @@ com\example\first_spring_app\repository\DeviceRepository.class
 com\example\first_spring_app\repository\SensorDataRepository.class
 com\example\first_spring_app\config\MqttSensorDataHandler.class
 com\example\first_spring_app\model\Device.class
-application.properties
 com\example\first_spring_app\config\WebSocketConfig.class
 com\example\first_spring_app\config\MqttConfig.class
 com\example\first_spring_app\controller\SensorDataController.class

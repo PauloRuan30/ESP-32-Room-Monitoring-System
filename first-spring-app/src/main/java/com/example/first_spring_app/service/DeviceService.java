@@ -5,6 +5,7 @@ import com.example.first_spring_app.repository.DeviceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class DeviceService {
@@ -18,7 +19,7 @@ public class DeviceService {
         return repository.findAll();
     }
 
-    public Device get(Long id) {
+    public Device get(UUID id) {
         return repository.findById(id).orElse(null);
     }
 
@@ -26,7 +27,7 @@ public class DeviceService {
         return repository.save(device);
     }
 
-    public void delete(Long id) {
+    public void delete(UUID id) {
         repository.deleteById(id);
     }
 }

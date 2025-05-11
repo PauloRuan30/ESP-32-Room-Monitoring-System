@@ -5,6 +5,7 @@ import com.example.first_spring_app.service.DeviceService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/devices")
@@ -22,7 +23,7 @@ public class DeviceController {
     }
 
     @GetMapping("/{id}")
-    public Device getOne(@PathVariable Long id) {
+    public Device getOne(@PathVariable UUID id) {
         return service.get(id);
     }
 
@@ -32,13 +33,13 @@ public class DeviceController {
     }
 
     @PutMapping("/{id}")
-    public Device update(@PathVariable String id, @RequestBody Device device) {
+    public Device update(@PathVariable UUID id, @RequestBody Device device) {
         device.setId(id);
         return service.save(device);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable UUID id) {
         service.delete(id);
     }
 }
