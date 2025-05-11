@@ -32,7 +32,7 @@ public class DeviceController {
     }
 
     @PutMapping("/{id}")
-    public Device update(@PathVariable Long id, @RequestBody Device device) {
+    public Device update(@PathVariable String id, @RequestBody Device device) {
         device.setId(id);
         return service.save(device);
     }
