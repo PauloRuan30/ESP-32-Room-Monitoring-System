@@ -20,7 +20,7 @@ public class Device {
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private UUID id;
 
     @Column(nullable = false)
