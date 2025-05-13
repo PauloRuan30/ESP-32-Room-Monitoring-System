@@ -1,4 +1,4 @@
-package com.example.first_spring_app.config;
+package app.config;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Value;

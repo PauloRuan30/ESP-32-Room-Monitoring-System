@@ -1,7 +1,7 @@
-package com.example.first_spring_app.controller;
+package app.controller;
 
-import com.example.first_spring_app.model.SensorData;
-import com.example.first_spring_app.service.SensorDataService;
+import app.model.SensorData;
+import app.service.SensorDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

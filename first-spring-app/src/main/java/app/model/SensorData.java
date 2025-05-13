@@ -1,4 +1,4 @@
-package com.example.first_spring_app.model;
+package app.model;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -18,10 +18,11 @@ public class SensorData {
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "device_id", nullable = false) 
     private Device device;
 
     @Column(nullable = false)

@@ -1,6 +1,6 @@
-package com.example.first_spring_app.repository;
+package app.repository;
 
-import com.example.first_spring_app.model.Device;
+import app.model.Device;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 

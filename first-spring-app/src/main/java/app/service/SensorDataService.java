@@ -1,7 +1,7 @@
-package com.example.first_spring_app.service;
+package app.service;
 
-import com.example.first_spring_app.model.SensorData;
-import com.example.first_spring_app.repository.SensorDataRepository;
+import app.model.SensorData;
+import app.repository.SensorDataRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

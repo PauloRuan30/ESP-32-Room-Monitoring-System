@@ -1,6 +1,6 @@
-package com.example.first_spring_app.repository;
+package app.repository;
 
-import com.example.first_spring_app.model.SensorData;
+import app.model.SensorData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

@@ -1,7 +1,7 @@
-package com.example.first_spring_app.service;
+package app.service;
 
-import com.example.first_spring_app.model.Device;
-import com.example.first_spring_app.repository.DeviceRepository;
+import app.model.Device;
+import app.repository.DeviceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

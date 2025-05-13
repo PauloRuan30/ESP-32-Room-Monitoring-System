@@ -1,8 +1,8 @@
-package com.example.first_spring_app.config;
+package app.config;
 
-import com.example.first_spring_app.model.SensorData;
-import com.example.first_spring_app.service.SensorDataService;
-import com.example.first_spring_app.service.WebSocketService;
+import app.model.SensorData;
+import app.service.SensorDataService;
+import app.service.WebSocketService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

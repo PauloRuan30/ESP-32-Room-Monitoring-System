@@ -1,7 +1,7 @@
-package com.example.first_spring_app.controller;
+package app.controller;
 
-import com.example.first_spring_app.model.Device;
-import com.example.first_spring_app.service.DeviceService;
+import app.model.Device;
+import app.service.DeviceService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
