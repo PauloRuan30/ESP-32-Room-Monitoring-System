@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/sensor")
@@ -22,7 +23,7 @@ public class SensorDataController {
     private SensorDataService sensorDataService;
 
     @GetMapping("/{deviceId}/latest")
-    public ResponseEntity<SensorData> getLatestData(@PathVariable String deviceId) {
+    public ResponseEntity<SensorData> getLatestData(@PathVariable UUID deviceId) {
         Optional<SensorData> latestData = sensorDataService.findLatestByDeviceId(deviceId);
         return latestData.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -47,7 +48,7 @@ public class SensorDataController {
     }
 
     @GetMapping("/{deviceId}/stats")
-    public ResponseEntity<Map<String, Object>> getDeviceStatistics(@PathVariable String deviceId) {
+    public ResponseEntity<Map<String, Object>> getDeviceStatistics(@PathVariable UUID deviceId) {
         Map<String, Object> stats = sensorDataService.getDeviceStatistics(deviceId);
         return ResponseEntity.ok(stats);
     }

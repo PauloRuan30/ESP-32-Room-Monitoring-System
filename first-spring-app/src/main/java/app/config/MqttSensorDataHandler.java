@@ -1,6 +1,8 @@
 package app.config;
 
+import app.model.Device;
 import app.model.SensorData;
+import app.service.DeviceService;
 import app.service.SensorDataService;
 import app.service.WebSocketService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,13 +25,13 @@ public class MqttSensorDataHandler implements MessageHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
-    private SensorData sensorData;
-    
-    @Autowired
     private WebSocketService webSocketService;
 
     @Autowired
     private SensorDataService sensorDataService;
+
+    @Autowired
+    private DeviceService deviceService; // ⬅️ Precisamos acessar o Device para associar
 
 
     @Override
@@ -52,12 +54,23 @@ public class MqttSensorDataHandler implements MessageHandler {
             String deviceIdString = topic.split("/")[2];
             // Converter a String para UUID
             UUID deviceId = UUID.fromString(deviceIdString);
+
+            // Buscar o Device no banco de dados
+            Device device = deviceService.get(deviceId);
+            if (device == null) {
+                log.warn("Dispositivo com ID {} não encontrado no banco de dados.", deviceId);
+                return;
+            }
             
             // Parse do JSON
             JsonNode jsonNode = objectMapper.readTree(payload);
+
+            // Criar nova instância de SensorData
+            SensorData sensorData = new SensorData();
+            sensorData.setDevice(device); // ✅ associar corretamente
             
             // Criar objeto SensorData
-            sensorData.setId(deviceId);
+            // sensorData.setId(deviceId);
             
             // Extrair dados do JSON
             if (jsonNode.has("temperature")) {

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -24,11 +25,11 @@ public class SensorDataService {
         return sensorDataRepository.save(sensorData);
     }
 
-    public List<SensorData> findAllByDeviceId(String deviceId) {
+    public List<SensorData> findAllByDeviceId(UUID deviceId) {
         return sensorDataRepository.findByDeviceIdOrderByTimestampDesc(deviceId);
     }
 
-    public Optional<SensorData> findLatestByDeviceId(String deviceId) {
+    public Optional<SensorData> findLatestByDeviceId(UUID deviceId) {
         return sensorDataRepository.findTopByDeviceIdOrderByTimestampDesc(deviceId);
     }
 
@@ -36,7 +37,7 @@ public class SensorDataService {
         return sensorDataRepository.findByTimestampBetweenOrderByTimestampAsc(start, end);
     }
 
-    public Map<String, Object> getDeviceStatistics(String deviceId) {
+    public Map<String, Object> getDeviceStatistics(UUID deviceId) {
         Map<String, Object> stats = new HashMap<>();
         
         // Obter dados do último dia

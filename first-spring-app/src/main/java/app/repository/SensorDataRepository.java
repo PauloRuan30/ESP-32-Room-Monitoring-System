@@ -13,15 +13,16 @@ import java.util.UUID;
 @Repository
 public interface SensorDataRepository extends JpaRepository<SensorData, UUID> {
 
-    List<SensorData> findByDeviceIdOrderByTimestampDesc(String deviceId);
+    List<SensorData> findByDeviceIdOrderByTimestampDesc(UUID deviceId);
     
-    Optional<SensorData> findTopByDeviceIdOrderByTimestampDesc(String deviceId);
+    Optional<SensorData> findTopByDeviceIdOrderByTimestampDesc(UUID deviceId);
     
     List<SensorData> findByTimestampBetweenOrderByTimestampAsc(Instant start, Instant end);
     
-    @Query("SELECT AVG(s.temperature) FROM sensor_data s WHERE s.deviceId = ?1 AND s.timestamp BETWEEN ?2 AND ?3")
-    Float findAverageTemperatureByDeviceAndTimeRange(String deviceId, Instant start, Instant end);
-    
-    @Query("SELECT AVG(s.humidity) FROM sensor_data s WHERE s.deviceId = ?1 AND s.timestamp BETWEEN ?2 AND ?3")
-    Float findAverageHumidityByDeviceAndTimeRange(String deviceId, Instant start, Instant end);
+    @Query("SELECT AVG(s.temperature) FROM SensorData s WHERE s.device.id = ?1 AND s.timestamp BETWEEN ?2 AND ?3")
+    Float findAverageTemperatureByDeviceAndTimeRange(UUID deviceId, Instant start, Instant end);
+
+    @Query("SELECT AVG(s.humidity) FROM SensorData s WHERE s.device.id = ?1 AND s.timestamp BETWEEN ?2 AND ?3")
+    Float findAverageHumidityByDeviceAndTimeRange(UUID deviceId, Instant start, Instant end);
+
 }
