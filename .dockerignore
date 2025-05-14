@@ -1,0 +1,43 @@
+# Java (Spring Boot + Maven)
+target/
+.mvn/
+!mvnw
+!mvnw.cmd
+
+# C++
+build/
+bin/
+obj/
+out/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.code-workspace
+
+# Temporários e logs
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+hs_err_pid*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
