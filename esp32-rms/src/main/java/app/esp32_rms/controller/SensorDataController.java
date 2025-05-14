@@ -1,6 +1,7 @@
 package app.esp32_rms.controller;
 
 import app.esp32_rms.model.SensorData;
+import app.esp32_rms.service.DeviceService;
 import app.esp32_rms.service.SensorDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sensor")
@@ -21,6 +23,7 @@ public class SensorDataController {
 
     @Autowired
     private SensorDataService sensorDataService;
+    private DeviceService deviceService;
 
     @GetMapping("/{deviceId}/latest")
     public ResponseEntity<SensorData> getLatestData(@PathVariable UUID deviceId) {
@@ -54,8 +57,10 @@ public class SensorDataController {
     }
 
     @GetMapping("/devices")
-    public ResponseEntity<List<String>> getDeviceList() {
-        // Implementação simplificada para MVP - no futuro, isso viria de um registro de dispositivos
-        return ResponseEntity.ok(List.of("ambiente1", "ambiente2", "ambiente3"));
-    }
+        public ResponseEntity<List<String>> getDeviceList() {
+        List<String> deviceIds = deviceService.listAll().stream()
+        .map(device -> device.getId().toString())
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(deviceIds);
+}
 }

@@ -190,17 +190,12 @@
                         // Adicionar ao selector
                         const option = document.createElement('option');
                         option.value = deviceId;
-                        option.textContent = `Ambiente ${deviceId}`;
+                        option.textContent = `Ambiente ${devices[deviceID] || deviceId}`;
                         deviceSelector.appendChild(option);
                         
                         // Carregar dados atuais
                         loadSensorData(deviceId);
                         
-                        // Subscrever para atualizações deste dispositivo
-                        stompClient.subscribe('/topic/sensor/' + deviceId, function(sensorData) {
-                            updateSensorCard(JSON.parse(sensorData.body));
-                            updateChart(JSON.parse(sensorData.body));
-                        });
                     });
                 })
                 .catch(error => {
@@ -219,7 +214,7 @@
             card.id = `sensor-card-${deviceId}`;
             
             // Preencher informações básicas
-            clone.querySelector('.device-id').textContent = deviceId;
+            clone.querySelector('.device-id').textContent = data.device.name || deviceId;
             
             // Adicionar status inicial
             const statusBadge = clone.querySelector('.status-badge');
@@ -252,7 +247,7 @@
         }
         
         function updateSensorCard(data) {
-            const deviceId = data.deviceId;
+            const deviceId = data.device.id;
             const card = document.getElementById(`sensor-card-${deviceId}`);
             
             if (!card) return;
@@ -276,7 +271,7 @@
             const selectedDevice = document.getElementById('device-selector').value;
             
             // Só atualizar o gráfico se for o dispositivo selecionado
-            if (selectedDevice !== data.deviceId) return;
+            if (selectedDevice !== data.device.id) return;
             
             const timestamp = new Date(data.timestamp);
             const timeStr = timestamp.toLocaleTimeString();
