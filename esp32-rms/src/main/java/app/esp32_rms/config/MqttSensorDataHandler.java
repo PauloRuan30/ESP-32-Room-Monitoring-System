@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.lang.NonNull;
 
 import java.time.Instant;
-import java.util.UUID;
+// import java.util.UUID;
 
 @Slf4j
 @Component
@@ -51,14 +51,21 @@ public class MqttSensorDataHandler implements MessageHandler {
             log.debug("Mensagem MQTT recebida de [{}]: {}", topic, payload);
             
             // Extrair o ID do dispositivo do tópico (assumindo formato first_spring_app/sensor/deviceId)
-            String deviceIdString = topic.split("/")[2];
+            // String deviceIdString = topic.split("/")[2];
             // Converter a String para UUID
-            UUID deviceId = UUID.fromString(deviceIdString);
+            // UUID deviceId = UUID.fromString(deviceIdString);
+
+            // Device device = new Device();
+            // device.setName("esp32");
+            // device.setType("temperatura e humidade");
+            // device.setLocation("Sala - 10");
 
             // Buscar o Device no banco de dados
-            Device device = deviceService.get(deviceId);
+            // Device device = deviceService.get(deviceId);
+            
+            Device device = deviceService.getByName("esp32");
             if (device == null) {
-                log.warn("Dispositivo com ID {} não encontrado no banco de dados.", deviceId);
+                log.warn("Device 'esp32' não encontrado no banco.");
                 return;
             }
             
@@ -67,7 +74,7 @@ public class MqttSensorDataHandler implements MessageHandler {
 
             // Criar nova instância de SensorData
             SensorData sensorData = new SensorData();
-            sensorData.setDevice(device); // ✅ associar corretamente
+            sensorData.setDevice(device); // associar corretamente
             
             // Criar objeto SensorData
             // sensorData.setId(deviceId);

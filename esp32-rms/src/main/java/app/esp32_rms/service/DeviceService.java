@@ -3,6 +3,7 @@ package app.esp32_rms.service;
 import app.esp32_rms.model.Device;
 import app.esp32_rms.repository.DeviceRepository;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,5 +30,10 @@ public class DeviceService {
 
     public void delete(UUID id) {
         repository.deleteById(id);
+    }
+
+    public Device getByName(String name) {
+        Optional<Device> optionalDevice = repository.findByName(name);
+        return optionalDevice.orElse(null);
     }
 }
