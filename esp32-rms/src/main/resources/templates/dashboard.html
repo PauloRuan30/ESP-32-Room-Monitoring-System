@@ -1,363 +1,242 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMDA - Dashboard</title>
-    
-    <!-- Bootstrap CSS -->
-    <!-- <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.2.3/css/bootstrap.min.css}"/> -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    
-    <style>
-        .card-sensor {
-            transition: all 0.3s ease;
-        }
-        .card-sensor:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .card-connected {
-            border-left: 5px solid #28a745;
-        }
-        .card-disconnected {
-            border-left: 5px solid #dc3545;
-        }
-        .chart-container {
-            height: 300px;
-            width: 100%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMDA - Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .card-sensor { transition: all 0.3s ease; }
+    .card-sensor:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .card-connected { border-left: 5px solid #28a745; }
+    .card-disconnected { border-left: 5px solid #dc3545; }
+    .chart-container { width: 100%; height: 300px; }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">SMDA - Sistema de Monitoramento Distribuído de Ambientes</a>
-        </div>
-    </nav>
-    
-    <div class="container mt-4">
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Visão Geral</h5>
-                        <p class="card-text">Monitoramento em tempo real de sensores distribuídos.</p>
-                        <div id="connection-status" class="alert alert-success">
-                            Sistema conectado ao servidor MQTT
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row" id="sensor-cards">
-            <!-- Cards dos sensores serão inseridos aqui via JavaScript -->
-            <div class="col-md-12 text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Carregando...</span>
-                </div>
-                <p>Carregando sensores...</p>
-            </div>
-        </div>
-        
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Gráfico de Temperatura e Umidade</h5>
-                        <select id="device-selector" class="form-select mb-3">
-                            <option value="" selected>Selecione um dispositivo...</option>
-                        </select>
-                        <div class="chart-container">
-                            <canvas id="sensor-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <nav class="navbar navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">SMDA - Sistema de Monitoramento Distribuído de Ambientes</span>
     </div>
-    
-    <!-- Template para card de sensor -->
-    <template id="sensor-card-template">
-        <div class="col-md-4 mb-4">
-            <div class="card card-sensor">
-                <div class="card-body">
-                    <h5 class="card-title">Ambiente <span class="device-id"></span></h5>
-                    <div class="status-badge"></div>
-                    <div class="card-text">
-                        <div class="row mt-3">
-                            <div class="col-6">
-                                <h2><i class="bi bi-thermometer"></i> <span class="temperature"></span>°C</h2>
-                                <p>Temperatura</p>
-                            </div>
-                            <div class="col-6">
-                                <h2><i class="bi bi-droplet"></i> <span class="humidity"></span>%</h2>
-                                <p>Umidade</p>
-                            </div>
-                        </div>
-                        <div class="text-muted mt-2 small">
-                            Última atualização: <span class="last-update"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  </nav>
+
+  <div class="container">
+    <div id="connection-status" class="alert alert-success">
+      Conectado ao servidor MQTT.
+    </div>
+
+    <div class="row mb-4" id="sensor-cards">
+      <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Carregando sensores...</p>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Gráfico de Temperatura e Umidade</h5>
+        <select id="device-selector" class="form-select mb-3">
+          <option value="">Selecione um dispositivo...</option>
+        </select>
+        <div class="chart-container">
+          <canvas id="sensor-chart"></canvas>
         </div>
-    </template>
-    
-    <!-- JavaScript -->
-    <script th:src="@{/webjars/jquery/3.6.1/jquery.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/5.2.3/js/bootstrap.bundle.min.js}"></script>
-    <script th:src="@{/webjars/sockjs-client/1.5.1/sockjs.min.js}"></script>
-    <script th:src="@{/webjars/stomp-websocket/2.3.4/stomp.min.js}"></script>
-    <script th:src="@{/webjars/chart.js/3.9.1/chart.min.js}"></script>
-    
-    <script>
-        let stompClient = null;
-        let sensorChart = null;
-        const temperatureData = {
-            labels: [],
-            datasets: [{
-                label: 'Temperatura (°C)',
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                data: [],
-                fill: true,
-                tension: 0.4
-            }]
-        };
-        
-        const humidityData = {
-            labels: [],
-            datasets: [{
-                label: 'Umidade (%)',
-                borderColor: 'rgb(54, 162, 235)',
-                backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                data: [],
-                fill: true,
-                tension: 0.4
-            }]
-        };
-        
-        function connect() {
-            const socket = new SockJS('/smda-websocket');
-            stompClient = Stomp.over(socket);
-            
-            stompClient.connect({}, function(frame) {
-                console.log('Conectado: ' + frame);
-                
-                // Subscrever para atualizações gerais de sensores
-                stompClient.subscribe('/topic/sensors', function(sensorData) {
-                    updateSensorCard(JSON.parse(sensorData.body));
-                });
-                
-                // Carregar lista de dispositivos
-                loadDevices();
-                
-                // Atualizar status de conexão
-                document.getElementById('connection-status').innerHTML = 
-                    'Sistema conectado e recebendo dados em tempo real';
-            }, function(error) {
-                // Callback de erro
-                console.error('Erro de conexão STOMP:', error);
-                document.getElementById('connection-status').className = 'alert alert-danger';
-                document.getElementById('connection-status').innerHTML = 
-                    'Erro de conexão com o servidor. Tentando reconectar...';
-                
-                // Tentar reconectar após 5 segundos
-                setTimeout(connect, 5000);
+      </div>
+    </div>
+  </div>
+
+  <!-- Template para sensor -->
+  <template id="sensor-card-template">
+    <div class="col-md-4 mb-4">
+      <div class="card card-sensor" id="">
+        <div class="card-body">
+          <h5 class="card-title">Ambiente <span class="device-id"></span></h5>
+          <div class="status-badge mb-2"><span class="badge bg-secondary">Aguardando dados...</span></div>
+          <p class="mb-1">Temperatura: <strong><span class="temperature">--</span>°C</strong></p>
+          <p class="mb-1">Umidade: <strong><span class="humidity">--</span>%</strong></p>
+          <p class="text-muted small">Última atualização: <span class="last-update">--</span></p>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+  <script>
+    let stompClient = null;
+    let sensorChart = null;
+    let selectedDevice = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      connect();
+      document.getElementById('device-selector').addEventListener('change', (e) => {
+        const deviceId = e.target.value;
+        if (deviceId) initChart(deviceId);
+      });
+    });
+
+    function connect() {
+      const socket = new SockJS('/smda-websocket');
+      stompClient = Stomp.over(socket);
+      stompClient.connect({}, () => {
+        console.log('Conectado ao WebSocket');
+        stompClient.subscribe('/topic/sensors', (message) => {
+          const data = JSON.parse(message.body);
+          updateSensorCard(data);
+        });
+        loadDevices();
+      }, (err) => {
+        console.error('Erro ao conectar:', err);
+        document.getElementById('connection-status').className = 'alert alert-danger';
+        document.getElementById('connection-status').textContent = 'Falha ao conectar ao servidor MQTT.';
+        setTimeout(connect, 5000); // tenta reconectar
+      });
+    }
+
+    function loadDevices() {
+  fetch('/api/sensor/devices')
+    .then(res => res.json())
+    .then(data => {
+      console.log("Resposta da API:", data); // Debug para verificar o formato
+
+      // Corrigir a estrutura, seja array direto ou objeto com chave "devices"
+      const devices = Array.isArray(data) ? data : data.devices;
+
+      if (!Array.isArray(devices)) {
+        throw new Error("Formato inesperado da resposta da API de dispositivos");
+      }
+
+      const cardsContainer = document.getElementById('sensor-cards');
+      cardsContainer.innerHTML = '';
+      const selector = document.getElementById('device-selector');
+      selector.innerHTML = '<option value="">Selecione um dispositivo...</option>';
+
+      devices.forEach(deviceId => {
+        createSensorCard(deviceId);
+
+        const opt = document.createElement('option');
+        opt.value = deviceId;
+        opt.textContent = `Ambiente ${deviceId}`;
+        selector.appendChild(opt);
+
+        loadSensorData(deviceId);
+      });
+    })
+    .catch(err => {
+      console.error('Erro ao carregar dispositivos:', err);
+      document.getElementById('sensor-cards').innerHTML =
+        '<div class="col-12"><div class="alert alert-danger">Erro ao carregar sensores.</div></div>';
+    });
+}
+
+
+    function createSensorCard(deviceId) {
+      const template = document.getElementById('sensor-card-template');
+      const clone = template.content.cloneNode(true);
+      const card = clone.querySelector('.card');
+      card.id = `sensor-card-${deviceId}`;
+      clone.querySelector('.device-id').textContent = deviceId;
+      document.getElementById('sensor-cards').appendChild(clone);
+    }
+
+    function updateSensorCard(data) {
+      const deviceId = data.device.id;
+      const card = document.getElementById(`sensor-card-${deviceId}`);
+      if (!card) return;
+
+      card.querySelector('.temperature').textContent = data.temperature.toFixed(1);
+      card.querySelector('.humidity').textContent = data.humidity.toFixed(1);
+      card.querySelector('.last-update').textContent = new Date(data.timestamp).toLocaleString();
+      card.querySelector('.status-badge').innerHTML = '<span class="badge bg-success">Conectado</span>';
+      card.classList.add('card-connected');
+      card.classList.remove('card-disconnected');
+
+      if (selectedDevice === deviceId) {
+        updateChart(data);
+      }
+    }
+
+    function loadSensorData(deviceId) {
+      fetch(`/api/sensor/${deviceId}/history`)
+        .then(res => res.json())
+        .then(history => {
+          if (selectedDevice === deviceId && sensorChart) {
+            const labels = [];
+            const temps = [];
+            const hums = [];
+            history.forEach(d => {
+              const time = new Date(d.timestamp).toLocaleTimeString();
+              labels.push(time);
+              temps.push(d.temperature);
+              hums.push(d.humidity);
             });
-        }
-        
-        function loadDevices() {
-            fetch('/api/sensor/devices')
-                .then(response => response.json())
-                .then(devices => {
-                    // Limpar container de cards
-                    const sensorCards = document.getElementById('sensor-cards');
-                    sensorCards.innerHTML = '';
-                    
-                    // Limpar e preencher selector de dispositivos
-                    const deviceSelector = document.getElementById('device-selector');
-                    
-                    // Manter a opção padrão
-                    deviceSelector.innerHTML = '<option value="" selected>Selecione um dispositivo...</option>';
-                    
-                    devices.forEach(deviceId => {
-                        // Criar card para o dispositivo
-                        createSensorCard(deviceId);
-                        
-                        // Adicionar ao selector
-                        const option = document.createElement('option');
-                        option.value = deviceId;
-                        option.textContent = `Ambiente ${devices[deviceID] || deviceId}`;
-                        deviceSelector.appendChild(option);
-                        
-                        // Carregar dados atuais
-                        loadSensorData(deviceId);
-                        
-                    });
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar dispositivos:', error);
-                    document.getElementById('sensor-cards').innerHTML = 
-                        '<div class="col-12"><div class="alert alert-danger">Erro ao carregar dispositivos.</div></div>';
-                });
-        }
-        
-        function createSensorCard(deviceId) {
-            const template = document.getElementById('sensor-card-template');
-            const clone = document.importNode(template.content, true);
-            
-            // Configurar ID e classe do card
-            const card = clone.querySelector('.card');
-            card.id = `sensor-card-${deviceId}`;
-            
-            // Preencher informações básicas
-            clone.querySelector('.device-id').textContent = data.device.name || deviceId;
-            
-            // Adicionar status inicial
-            const statusBadge = clone.querySelector('.status-badge');
-            statusBadge.innerHTML = '<span class="badge bg-secondary">Aguardando dados...</span>';
-            
-            // Adicionar card ao container
-            document.getElementById('sensor-cards').appendChild(clone);
-        }
-        
-        function loadSensorData(deviceId) {
-            fetch(`/api/sensor/${deviceId}/latest`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Sensor sem dados recentes');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    updateSensorCard(data);
-                })
-                .catch(error => {
-                    console.warn(`Sem dados para sensor ${deviceId}:`, error);
-                    const card = document.getElementById(`sensor-card-${deviceId}`);
-                    if (card) {
-                        card.classList.add('card-disconnected');
-                        card.querySelector('.status-badge').innerHTML = 
-                            '<span class="badge bg-danger">Desconectado</span>';
-                    }
-                });
-        }
-        
-        function updateSensorCard(data) {
-            const deviceId = data.device.id;
-            const card = document.getElementById(`sensor-card-${deviceId}`);
-            
-            if (!card) return;
-            
-            // Atualizar dados
-            card.querySelector('.temperature').textContent = data.temperature.toFixed(1);
-            card.querySelector('.humidity').textContent = data.humidity.toFixed(1);
-            
-            // Atualizar status
-            card.classList.remove('card-disconnected');
-            card.classList.add('card-connected');
-            card.querySelector('.status-badge').innerHTML = 
-                '<span class="badge bg-success">Conectado</span>';
-            
-            // Atualizar hora
-            const timestamp = new Date(data.timestamp);
-            card.querySelector('.last-update').textContent = timestamp.toLocaleTimeString();
-        }
-        
-        function updateChart(data) {
-            const selectedDevice = document.getElementById('device-selector').value;
-            
-            // Só atualizar o gráfico se for o dispositivo selecionado
-            if (selectedDevice !== data.device.id) return;
-            
-            const timestamp = new Date(data.timestamp);
-            const timeStr = timestamp.toLocaleTimeString();
-            
-            // Limitar a 20 pontos para melhor visualização
-            if (temperatureData.labels.length >= 20) {
-                temperatureData.labels.shift();
-                temperatureData.datasets[0].data.shift();
-                humidityData.datasets[0].data.shift();
-            }
-            
-            temperatureData.labels.push(timeStr);
-            temperatureData.datasets[0].data.push(data.temperature);
-            humidityData.datasets[0].data.push(data.humidity);
-            
-            if (sensorChart) {
-                sensorChart.update();
-            }
-        }
-        
-        function initChart(deviceId) {
-            // Limpar dados anteriores
-            temperatureData.labels = [];
-            temperatureData.datasets[0].data = [];
-            humidityData.datasets[0].data = [];
-            
-            // Carregar histórico de dados para o gráfico
-            fetch(`/api/sensor/${deviceId}/history`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(item => {
-                        const timestamp = new Date(item.timestamp);
-                        temperatureData.labels.push(timestamp.toLocaleTimeString());
-                        temperatureData.datasets[0].data.push(item.temperature);
-                        humidityData.datasets[0].data.push(item.humidity);
-                    });
-                    
-                    // Criar ou atualizar gráfico
-                    const ctx = document.getElementById('sensor-chart').getContext('2d');
-                    
-                    if (sensorChart) {
-                        sensorChart.destroy();
-                    }
-                    
-                    sensorChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: temperatureData.labels,
-                            datasets: [
-                                temperatureData.datasets[0],
-                                humidityData.datasets[0]
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                x: {
-                                    grid: {
-                                        display: false
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: false
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Erro ao carregar histórico:', error);
-                });
-        }
-        
-        // Evento para mudança de dispositivo no selector
-        document.getElementById('device-selector').addEventListener('change', function(event) {
-            const deviceId = event.target.value;
-            if (deviceId) {
-                initChart(deviceId);
-            }
+            sensorChart.data.labels = labels;
+            sensorChart.data.datasets[0].data = temps;
+            sensorChart.data.datasets[1].data = hums;
+            sensorChart.update();
+          }
         });
-        
-        // Iniciar conexão quando a página carrega
-        document.addEventListener('DOMContentLoaded', function() {
-            connect();
-        });
-    </script>
+    }
+
+    function initChart(deviceId) {
+      selectedDevice = deviceId;
+      const ctx = document.getElementById('sensor-chart').getContext('2d');
+      if (sensorChart) sensorChart.destroy();
+
+      sensorChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Temperatura (°C)',
+              data: [],
+              borderColor: 'rgb(255, 99, 132)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              tension: 0.4
+            },
+            {
+              label: 'Umidade (%)',
+              data: [],
+              borderColor: 'rgb(54, 162, 235)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+
+      loadSensorData(deviceId);
+    }
+
+    function updateChart(data) {
+      const time = new Date(data.timestamp).toLocaleTimeString();
+      const chart = sensorChart;
+      if (!chart) return;
+
+      if (chart.data.labels.length >= 20) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+        chart.data.datasets[1].data.shift();
+      }
+
+      chart.data.labels.push(time);
+      chart.data.datasets[0].data.push(data.temperature);
+      chart.data.datasets[1].data.push(data.humidity);
+      chart.update();
+    }
+  </script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: esp32-rms-service
+spec:
+  type: ClusterIP
+  selector:
+    app: esp32-rms
+  ports:
+  - port: 80
+    targetPort: 8080

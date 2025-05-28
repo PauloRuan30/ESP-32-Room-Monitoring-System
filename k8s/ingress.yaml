@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: esp32-rms-ingress
+spec:
+  rules:
+  - host: rms.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: esp32-rms-service
+            port:
+              number: 80

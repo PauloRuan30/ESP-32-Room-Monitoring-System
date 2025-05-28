@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: esp32-rms
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: esp32-rms
+  template:
+    metadata:
+      labels:
+        app: esp32-rms
+    spec:
+      containers:
+      - name: esp32-rms
+        image: your-dockerhub-user/esp32-rms:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: prod
