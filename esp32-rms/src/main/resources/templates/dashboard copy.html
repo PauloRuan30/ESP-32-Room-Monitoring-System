@@ -3,112 +3,506 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMDA - Dashboard Estático</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    .card-sensor { transition: all 0.3s ease; }
-    .card-sensor:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-    .card-connected { border-left: 5px solid #28a745; }
-    .chart-container { width: 100%; height: 300px; }
-  </style>
+  <title>SMDA - Dashboard Dinâmico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
-<body>
-  <nav class="navbar navbar-dark bg-primary mb-4">
-    <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">SMDA - Sistema de Monitoramento Distribuído de Ambientes</span>
+<body class="bg-gray-100">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 text-white p-4 shadow-lg">
+    <div class="container mx-auto">
+      <h1 class="text-xl font-bold">SMDA - Sistema de Monitoramento Distribuído de Ambientes</h1>
     </div>
   </nav>
 
-  <div class="container">
-    <div id="connection-status" class="alert alert-success">
-      Conectado ao servidor MQTT.
+  <div class="container mx-auto px-4 py-6">
+    <!-- Status de Conexão -->
+    <div id="connection-status" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+      <span id="connection-text">Conectado ao servidor MQTT.</span>
     </div>
 
-    <div class="row mb-4" id="sensor-cards">
-      <!-- Sensor Card 1 -->
-      <div class="col-md-4 mb-4">
-        <div class="card card-sensor card-connected">
-          <div class="card-body">
-            <h5 class="card-title">Ambiente 01</h5>
-            <div class="status-badge mb-2"><span class="badge bg-success">Conectado</span></div>
-            <p class="mb-1">Temperatura: <strong>24.5°C</strong></p>
-            <p class="mb-1">Umidade: <strong>55%</strong></p>
-            <p class="text-muted small">Última atualização: 28/05/2025 14:30:00</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sensor Card 2 -->
-      <div class="col-md-4 mb-4">
-        <div class="card card-sensor card-connected">
-          <div class="card-body">
-            <h5 class="card-title">Ambiente 02</h5>
-            <div class="status-badge mb-2"><span class="badge bg-success">Conectado</span></div>
-            <p class="mb-1">Temperatura: <strong>26.1°C</strong></p>
-            <p class="mb-1">Umidade: <strong>60%</strong></p>
-            <p class="text-muted small">Última atualização: 28/05/2025 14:30:00</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sensor Card 3 -->
-      <div class="col-md-4 mb-4">
-        <div class="card card-sensor card-connected">
-          <div class="card-body">
-            <h5 class="card-title">Ambiente 03</h5>
-            <div class="status-badge mb-2"><span class="badge bg-success">Conectado</span></div>
-            <p class="mb-1">Temperatura: <strong>23.7°C</strong></p>
-            <p class="mb-1">Umidade: <strong>52%</strong></p>
-            <p class="text-muted small">Última atualização: 28/05/2025 14:30:00</p>
-          </div>
-        </div>
-      </div>
+    <!-- Controles -->
+    <div class="mb-6 flex flex-wrap gap-4">
+      <button id="back-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors">
+        ← Voltar para Visão Geral
+      </button>
+      <button id="generate-report" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors">
+        📊 Gerar Relatório
+      </button>
+      <button id="toggle-connection" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors">
+        Desconectar MQTT
+      </button>
     </div>
 
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5 class="card-title">Gráfico de Temperatura e Umidade</h5>
-        <div class="chart-container">
-          <canvas id="sensor-chart"></canvas>
-        </div>
+    <!-- Cards dos Sensores -->
+    <div id="sensor-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Cards serão gerados dinamicamente -->
+    </div>
+
+    <!-- Gráfico Principal -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h2 id="chart-title" class="text-xl font-semibold mb-4">Gráfico de Temperatura e Umidade - Média Geral</h2>
+      <div class="relative h-80">
+        <canvas id="sensor-chart"></canvas>
       </div>
     </div>
   </div>
 
-  <!-- Chart.js para gráfico estático -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <script>
-    const ctx = document.getElementById('sensor-chart').getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['14:00', '14:05', '14:10', '14:15', '14:20', '14:25', '14:30'],
-        datasets: [
+    // Configuração global
+    const DEVICES = [
+      { id: 'esp32-001', name: 'Ambiente 01', location: 'Sala de Reunião A' },
+      { id: 'esp32-002', name: 'Ambiente 02', location: 'Escritório Principal' },
+      { id: 'esp32-003', name: 'Ambiente 03', location: 'Laboratório' }
+    ];
+
+    // Estado da aplicação
+    let mqttConnected = true;
+    let currentView = 'overview'; // overview ou device-specific
+    let currentDeviceId = null;
+    let chart = null;
+    let deviceData = {};
+    let historicalData = {};
+
+    // Inicializar dados históricos
+    DEVICES.forEach(device => {
+      deviceData[device.id] = {
+        temperature: 24.0,
+        humidity: 55.0,
+        co2: 400,
+        luminosity: 300,
+        presence: true,
+        noise_level: 45.0,
+        energy_consumption: 35.0,
+        lastUpdate: new Date()
+      };
+      historicalData[device.id] = {
+        timestamps: [],
+        temperature: [],
+        humidity: [],
+        co2: [],
+        luminosity: [],
+        noise_level: [],
+        energy_consumption: []
+      };
+    });
+
+    // Simular dados de sensores (equivalente ao get_sensor_data do Python)
+    function generateSensorData(deviceId) {
+      const baseTemp = deviceId === 'esp32-001' ? 24.0 : deviceId === 'esp32-002' ? 26.0 : 23.5;
+      const baseHumidity = deviceId === 'esp32-001' ? 55.0 : deviceId === 'esp32-002' ? 60.0 : 52.0;
+      
+      return {
+        device: { id: deviceId },
+        temperature: Math.round((baseTemp + (Math.random() - 0.5) * 4) * 10) / 10,
+        humidity: Math.round((baseHumidity + (Math.random() - 0.5) * 10) * 10) / 10,
+        co2: Math.round(400 + (Math.random() - 0.5) * 100),
+        luminosity: Math.round(300 + (Math.random() - 0.5) * 200),
+        presence: Math.random() > 0.3,
+        noise_level: Math.round((35 + Math.random() * 45) * 10) / 10,
+        energy_consumption: Math.round((30 + Math.random() * 20) * 10) / 10,
+        timestamp: Date.now()
+      };
+    }
+
+    // Simular envio MQTT/REST (equivalente ao enviar_dados do Python)
+    function simulateDataTransmission() {
+      DEVICES.forEach(device => {
+        const data = generateSensorData(device.id);
+        
+        if (mqttConnected) {
+          // Simular publicação MQTT
+          console.log(`[MQTT] Published to smda/sensor/${device.id}:`, data);
+        } else {
+          // Simular fallback REST
+          console.log(`[REST] Dados enviados via REST:`, data);
+        }
+        
+        // Atualizar dados locais
+        deviceData[device.id] = {
+          ...data,
+          lastUpdate: new Date(data.timestamp)
+        };
+        
+        // Adicionar aos dados históricos
+        const hist = historicalData[device.id];
+        const now = new Date();
+        hist.timestamps.push(now.toLocaleTimeString());
+        hist.temperature.push(data.temperature);
+        hist.humidity.push(data.humidity);
+        hist.co2.push(data.co2);
+        hist.luminosity.push(data.luminosity);
+        hist.noise_level.push(data.noise_level);
+        hist.energy_consumption.push(data.energy_consumption);
+        
+        // Manter apenas os últimos 20 pontos
+        if (hist.timestamps.length > 20) {
+          Object.keys(hist).forEach(key => {
+            if (Array.isArray(hist[key])) {
+              hist[key] = hist[key].slice(-20);
+            }
+          });
+        }
+      });
+      
+      updateUI();
+    }
+
+    // Atualizar interface
+    function updateUI() {
+      updateSensorCards();
+      updateChart();
+    }
+
+    // Atualizar cards dos sensores
+    function updateSensorCards() {
+      const container = document.getElementById('sensor-cards');
+      container.innerHTML = '';
+      
+      DEVICES.forEach(device => {
+        const data = deviceData[device.id];
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-l-4 border-green-500';
+        card.onclick = () => showDeviceDetails(device.id);
+        
+        card.innerHTML = `
+          <h3 class="text-lg font-semibold mb-2">${device.name}</h3>
+          <p class="text-sm text-gray-600 mb-3">${device.location}</p>
+          <div class="mb-3">
+            <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+              ${mqttConnected ? 'Conectado' : 'Offline'}
+            </span>
+          </div>
+          <div class="space-y-2">
+            <p><span class="font-medium">Temperatura:</span> <strong>${data.temperature}°C</strong></p>
+            <p><span class="font-medium">Umidade:</span> <strong>${data.humidity}%</strong></p>
+            <p><span class="font-medium">CO2:</span> <strong>${data.co2} ppm</strong></p>
+            <p><span class="font-medium">Luminosidade:</span> <strong>${data.luminosity} lux</strong></p>
+            <p><span class="font-medium">Ruído:</span> <strong>${data.noise_level} dB</strong></p>
+            <p><span class="font-medium">Consumo:</span> <strong>${data.energy_consumption} mA</strong></p>
+          </div>
+          <p class="text-xs text-gray-500 mt-3">
+            Última atualização: ${data.lastUpdate.toLocaleString()}
+          </p>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    // Mostrar detalhes de um dispositivo específico
+    function showDeviceDetails(deviceId) {
+      currentView = 'device';
+      currentDeviceId = deviceId;
+      document.getElementById('back-btn').classList.remove('hidden');
+      
+      const device = DEVICES.find(d => d.id === deviceId);
+      document.getElementById('chart-title').textContent = `Gráfico Detalhado - ${device.name}`;
+      
+      updateChart();
+    }
+
+    // Voltar para visão geral
+    function showOverview() {
+      currentView = 'overview';
+      currentDeviceId = null;
+      document.getElementById('back-btn').classList.add('hidden');
+      document.getElementById('chart-title').textContent = 'Gráfico de Temperatura e Umidade - Média Geral';
+      
+      updateChart();
+    }
+
+    // Atualizar gráfico
+    function updateChart() {
+      const ctx = document.getElementById('sensor-chart').getContext('2d');
+      
+      if (chart) {
+        chart.destroy();
+      }
+      
+      let datasets = [];
+      let labels = [];
+      
+      if (currentView === 'overview') {
+        // Gráfico com médias de todos os dispositivos
+        const avgData = calculateAverages();
+        labels = avgData.timestamps;
+        
+        datasets = [
+          {
+            label: 'Temperatura Média (°C)',
+            data: avgData.temperature,
+            borderColor: 'rgb(239, 68, 68)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Umidade Média (%)',
+            data: avgData.humidity,
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'CO2 Médio (ppm)',
+            data: avgData.co2,
+            borderColor: 'rgb(34, 197, 94)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            tension: 0.4,
+            fill: true
+          }
+        ];
+      } else {
+        // Gráfico específico do dispositivo
+        const data = historicalData[currentDeviceId];
+        labels = data.timestamps;
+        
+        datasets = [
           {
             label: 'Temperatura (°C)',
-            data: [23.8, 24.1, 24.3, 24.5, 24.6, 24.4, 24.5],
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            tension: 0.4
+            data: data.temperature,
+            borderColor: 'rgb(239, 68, 68)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.4,
+            fill: true
           },
           {
             label: 'Umidade (%)',
-            data: [54, 55, 56, 55, 54, 53, 55],
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            tension: 0.4
+            data: data.humidity,
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'CO2 (ppm)',
+            data: data.co2,
+            borderColor: 'rgb(34, 197, 94)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Ruído (dB)',
+            data: data.noise_level,
+            borderColor: 'rgb(168, 85, 247)',
+            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Consumo (mA)',
+            data: data.energy_consumption,
+            borderColor: 'rgb(245, 158, 11)',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            tension: 0.4,
+            fill: true
           }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
+        ];
+      }
+      
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          },
+          elements: {
+            point: {
+              radius: 4,
+              hoverRadius: 6
+            }
           }
         }
+      });
+    }
+
+    // Calcular médias para o gráfico geral
+    function calculateAverages() {
+      const maxLength = Math.max(...DEVICES.map(d => historicalData[d.id].timestamps.length));
+      const result = {
+        timestamps: [],
+        temperature: [],
+        humidity: [],
+        co2: [],
+        luminosity: [],
+        noise_level: [],
+        energy_consumption: []
+      };
+      
+      for (let i = 0; i < maxLength; i++) {
+        const values = {
+          temperature: [],
+          humidity: [],
+          co2: [],
+          luminosity: [],
+          noise_level: [],
+          energy_consumption: []
+        };
+        
+        let timestamp = '';
+        
+        DEVICES.forEach(device => {
+          const data = historicalData[device.id];
+          if (data.timestamps[i]) {
+            timestamp = data.timestamps[i];
+            Object.keys(values).forEach(key => {
+              if (data[key][i] !== undefined) {
+                values[key].push(data[key][i]);
+              }
+            });
+          }
+        });
+        
+        if (timestamp) {
+          result.timestamps.push(timestamp);
+          Object.keys(values).forEach(key => {
+            const avg = values[key].length > 0 
+              ? values[key].reduce((a, b) => a + b, 0) / values[key].length 
+              : 0;
+            result[key].push(Math.round(avg * 10) / 10);
+          });
+        }
       }
-    });
+      
+      return result;
+    }
+
+    // Gerar relatório
+    function generateReport() {
+      const now = new Date();
+      const reportData = [];
+      
+      reportData.push('='.repeat(60));
+      reportData.push('RELATÓRIO SMDA - SISTEMA DE MONITORAMENTO');
+      reportData.push('='.repeat(60));
+      reportData.push(`Data/Hora: ${now.toLocaleString()}`);
+      reportData.push(`Status MQTT: ${mqttConnected ? 'Conectado' : 'Desconectado'}`);
+      reportData.push('');
+      
+      // Dados atuais de cada dispositivo
+      reportData.push('DADOS ATUAIS DOS DISPOSITIVOS:');
+      reportData.push('-'.repeat(40));
+      
+      DEVICES.forEach(device => {
+        const data = deviceData[device.id];
+        reportData.push(`\n${device.name} (${device.location}):`);
+        reportData.push(`  ID: ${device.id}`);
+        reportData.push(`  Temperatura: ${data.temperature}°C`);
+        reportData.push(`  Umidade: ${data.humidity}%`);
+        reportData.push(`  CO2: ${data.co2} ppm`);
+        reportData.push(`  Luminosidade: ${data.luminosity} lux`);
+        reportData.push(`  Nível de Ruído: ${data.noise_level} dB`);
+        reportData.push(`  Consumo Energético: ${data.energy_consumption} mA`);
+        reportData.push(`  Presença: ${data.presence ? 'Detectada' : 'Não detectada'}`);
+        reportData.push(`  Última Atualização: ${data.lastUpdate.toLocaleString()}`);
+      });
+      
+      // Médias gerais
+      const currentValues = DEVICES.map(d => deviceData[d.id]);
+      const avgTemp = currentValues.reduce((sum, d) => sum + d.temperature, 0) / currentValues.length;
+      const avgHumidity = currentValues.reduce((sum, d) => sum + d.humidity, 0) / currentValues.length;
+      const avgCo2 = currentValues.reduce((sum, d) => sum + d.co2, 0) / currentValues.length;
+      
+      reportData.push('\nMÉDIAS GERAIS:');
+      reportData.push('-'.repeat(20));
+      reportData.push(`Temperatura Média: ${avgTemp.toFixed(1)}°C`);
+      reportData.push(`Umidade Média: ${avgHumidity.toFixed(1)}%`);
+      reportData.push(`CO2 Médio: ${avgCo2.toFixed(0)} ppm`);
+      
+      // Histórico resumido
+      reportData.push('\nHISTÓRICO RESUMIDO (últimos 10 registros):');
+      reportData.push('-'.repeat(45));
+      
+      const avgHistory = calculateAverages();
+      const recentHistory = Math.min(10, avgHistory.timestamps.length);
+      
+      for (let i = Math.max(0, avgHistory.timestamps.length - recentHistory); i < avgHistory.timestamps.length; i++) {
+        reportData.push(`${avgHistory.timestamps[i]} - Temp: ${avgHistory.temperature[i]}°C, Umidade: ${avgHistory.humidity[i]}%`);
+      }
+      
+      reportData.push('\n' + '='.repeat(60));
+      reportData.push('Fim do relatório');
+      
+      // Criar e baixar arquivo
+      const content = reportData.join('\n');
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio_smda_${now.toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      alert('Relatório gerado e baixado com sucesso!');
+    }
+
+    // Alternar conexão MQTT
+    function toggleConnection() {
+      mqttConnected = !mqttConnected;
+      const btn = document.getElementById('toggle-connection');
+      const status = document.getElementById('connection-status');
+      const statusText = document.getElementById('connection-text');
+      
+      if (mqttConnected) {
+        btn.textContent = 'Desconectar MQTT';
+        btn.className = 'bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors';
+        status.className = 'bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6';
+        statusText.textContent = 'Conectado ao servidor MQTT.';
+      } else {
+        btn.textContent = 'Conectar MQTT';
+        btn.className = 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors';
+        status.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6';
+        statusText.textContent = 'Desconectado do servidor MQTT. Usando fallback REST.';
+      }
+      
+      updateUI();
+    }
+
+    // Event listeners
+    document.getElementById('back-btn').onclick = showOverview;
+    document.getElementById('generate-report').onclick = generateReport;
+    document.getElementById('toggle-connection').onclick = toggleConnection;
+
+    // Inicialização
+    function init() {
+      // Gerar alguns dados históricos iniciais
+      for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+          simulateDataTransmission();
+        }, i * 100);
+      }
+      
+      // Atualizar dados a cada 10 segundos (simulando o time.sleep(10) do Python)
+      setInterval(simulateDataTransmission, 10000);
+      
+      updateUI();
+    }
+
+    // Iniciar aplicação
+    init();
   </script>
 </body>
 </html>
