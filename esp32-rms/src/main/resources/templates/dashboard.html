@@ -106,12 +106,25 @@
     </template>
     
     <!-- JavaScript -->
-    <script th:src="@{/webjars/jquery/3.6.1/jquery.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/5.2.3/js/bootstrap.bundle.min.js}"></script>
-    <script th:src="@{/webjars/sockjs-client/1.5.1/sockjs.min.js}"></script>
-    <script th:src="@{/webjars/stomp-websocket/2.3.4/stomp.min.js}"></script>
-    <script th:src="@{/webjars/chart.js/3.9.1/chart.min.js}"></script>
-    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJ+YIGBuMluYkeJTTJZUTyWbF2QmXBf7Fj+2k="
+    crossorigin="anonymous"></script>
+
+    <!-- Bootstrap Bundle (inclui Popper.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-w76A2z02tPqdj+gC7zD5kHg1fQ775iU4L1O8yKPX5xYTvHqZyqhP5W20nE6g3axE"
+    crossorigin="anonymous"></script>
+
+    <!-- SockJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+
+    <!-- STOMP over WebSocket -->
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <script>
         let stompClient = null;
         let sensorChart = null;
@@ -190,7 +203,7 @@
                         // Adicionar ao selector
                         const option = document.createElement('option');
                         option.value = deviceId;
-                        option.textContent = `Ambiente ${devices[deviceID] || deviceId}`;
+                        option.textContent = `Ambiente ${devices[deviceId] || deviceId}`;
                         deviceSelector.appendChild(option);
                         
                         // Carregar dados atuais
@@ -214,7 +227,7 @@
             card.id = `sensor-card-${deviceId}`;
             
             // Preencher informações básicas
-            clone.querySelector('.device-id').textContent = data.device.name || deviceId;
+            clone.querySelector('.device-id').textContent = deviceId;
             
             // Adicionar status inicial
             const statusBadge = clone.querySelector('.status-badge');
